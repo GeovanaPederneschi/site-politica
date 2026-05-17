@@ -10,12 +10,13 @@ import { CATEGORIES } from '@/types'
 export default function Navbar() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { setProfile(null); return }
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
       setProfile(data)
     }
@@ -28,6 +29,7 @@ export default function Navbar() {
   }, [])
 
   async function handleSignOut() {
+    const supabase = createClient()
     await supabase.auth.signOut()
     setProfile(null)
     window.location.href = '/'

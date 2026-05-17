@@ -50,7 +50,7 @@ export default async function PainelPage() {
       <div className="grid grid-cols-3 gap-4 mb-10">
         {(['pending', 'published', 'rejected'] as const).map(status => {
           const count = myArticles.filter(a => a.status === status).length
-          const { label, color } = statusMap[status]
+          const { label } = statusMap[status]
           return (
             <div key={status} className="border border-border bg-white p-4 text-center">
               <p className="text-3xl font-serif font-bold text-ink">{count}</p>

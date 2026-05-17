@@ -16,7 +16,7 @@ export default function NovoArtigoPage() {
   const [title, setTitle] = useState('')
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState(CATEGORIES[0])
+  const [category, setCategory] = useState<typeof CATEGORIES[number]>(CATEGORIES[0])
   const [tags, setTags] = useState('')
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -83,8 +83,8 @@ export default function NovoArtigoPage() {
       if (insertError) throw insertError
 
       router.push('/painel')
-    } catch (err: any) {
-      setError(err.message ?? 'Erro ao submeter artigo.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao submeter artigo.')
       setLoading(false)
     }
   }
@@ -141,7 +141,7 @@ export default function NovoArtigoPage() {
             </label>
             <select
               value={category}
-              onChange={e => setCategory(e.target.value as any)}
+              onChange={e => setCategory(e.target.value as typeof CATEGORIES[number])}
               className="w-full border border-border bg-white px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-ink transition-colors"
             >
               {CATEGORIES.map(c => (
