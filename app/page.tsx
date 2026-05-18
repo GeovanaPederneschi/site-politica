@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import ArticleCard from '@/components/ArticleCard'
 import { ArticleWithAuthor } from '@/types'
+import Image from 'next/image'
 
 interface HomePageProps {
   searchParams: { categoria?: string }
@@ -33,6 +34,25 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+
+      {/* Institutional about — shown only on unfiltered home */}
+      {!categoria && (
+        <section className="mb-10 pb-8 border-b border-border">
+          <p className="text-sm text-ink leading-relaxed max-w-3xl">
+            O Atlantis Sul é um portal de ensaios e reflexões sobre política, economia, história,
+            filosofia, direito e geopolítica. O site reúne textos, análises e intervenções de autores
+            que compartilham o interesse por questões fundamentais de ordem pública, formação histórica,
+            economia política e interpretação do Brasil.
+          </p>
+          <p className="text-sm text-ink-muted leading-relaxed max-w-3xl mt-3">
+            O nome Atlantis Sul evoca a tradição clássica greco-romana e a civilização atlântica, ao
+            mesmo tempo que se ancora no hemisfério sul, no Brasil e na América do Sul. É uma revista
+            de ideias que não abre mão da densidade teórica, da clareza editorial e da responsabilidade
+            intelectual.
+          </p>
+        </section>
+      )}
+
       {categoria && (
         <div className="mb-8">
           <h2 className="font-serif text-2xl font-bold text-ink border-b-2 border-accent pb-2 inline-block">
@@ -89,6 +109,42 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           )}
         </>
       )}
+
+      {/* Founder & Editor — shown only on unfiltered home */}
+      {!categoria && (
+        <section className="mt-16 pt-10 border-t border-border">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-semibold tracking-widest uppercase text-ink-muted">Fundador e editor</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-8 items-start max-w-3xl">
+            <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden rounded-full border border-border">
+              <Image
+                src="/tuca.jpeg"
+                alt="João Arthur Mendes Castro"
+                fill
+                className="object-cover"
+                sizes="128px"
+              />
+            </div>
+            <div>
+              <h3 className="font-serif text-xl font-bold text-ink mb-1">João Arthur Mendes Castro</h3>
+              <p className="text-xs font-semibold tracking-widest uppercase text-accent mb-3">Fundador e editor</p>
+              <p className="text-sm text-ink leading-relaxed mb-2">
+                Advogado (OAB/SP), com estudos voltados para Direito Econômico, Finanças Públicas e Tributário,
+                e bacharel em Filosofia pela Universidade Católica de Brasília (UCB).
+              </p>
+              <p className="text-sm text-ink-muted leading-relaxed">
+                Fundador e editor do Atlantis Sul, onde escreve sobre política, economia, história, filosofia,
+                direito e geopolítica. Criador de conteúdo audiovisual para YouTube e pesquisador independente
+                em história das ideias, economia institucional e pensamento político clássico.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
     </div>
   )
 }
