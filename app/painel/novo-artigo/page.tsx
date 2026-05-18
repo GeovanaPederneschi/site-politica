@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { CATEGORIES } from '@/types'
+import { Category } from '@/types'
 import ArticleEditor from '@/components/ArticleEditor'
+import FocalPointPicker from '@/components/FocalPointPicker'
 import { Upload, X } from 'lucide-react'
 import slugify from 'slugify'
 import Image from 'next/image'
@@ -16,23 +17,39 @@ export default function NovoArtigoPage() {
   const [title, setTitle] = useState('')
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
-  const [category, setCategory] = useState<typeof CATEGORIES[number]>(CATEGORIES[0])
+  const [category, setCategory] = useState('')
+  const [subcategory, setSubcategory] = useState('')
   const [tags, setTags] = useState('')
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPosition, setCoverPosition] = useState('center center')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
 
-  // Detecta se é admin para adaptar o texto do botão
-  useState(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      supabase.from('profiles').select('role').eq('id', user.id).single()
-        .then(({ data }) => setIsAdmin(data?.role === 'admin'))
-    })
-  })
+
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      setIsAdmin(profile?.role === 'admin')
+
+      const { data: all } = await supabase.from('categories').select('*').order('display_order')
+      if (!all) return
+      const topLevel = all.filter((c: Category) => !c.parent_id).map((c: Category) => ({
+        ...c,
+        subcategories: all.filter((s: Category) => s.parent_id === c.id),
+      }))
+      setCategories(topLevel)
+      if (topLevel.length > 0) setCategory(topLevel[0].name)
+    }
+    load()
+  }, [])
+
+  const selectedCategory = categories.find(c => c.name === category)
+  const subcategories = selectedCategory?.subcategories ?? []
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -54,14 +71,6 @@ export default function NovoArtigoPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      const isAdmin = profileData?.role === 'admin'
-
       let coverUrl: string | null = null
 
       if (coverFile) {
@@ -70,9 +79,7 @@ export default function NovoArtigoPage() {
         const { error: uploadError } = await supabase.storage
           .from('covers')
           .upload(fileName, coverFile, { upsert: true })
-
         if (uploadError) throw uploadError
-
         const { data: publicData } = supabase.storage.from('covers').getPublicUrl(fileName)
         coverUrl = publicData.publicUrl
       }
@@ -80,10 +87,7 @@ export default function NovoArtigoPage() {
       const baseSlug = slugify(title, { lower: true, strict: true, locale: 'pt' })
       const slug = `${baseSlug}-${Date.now()}`
 
-      const tagsArray = tags
-        .split(',')
-        .map(t => t.trim())
-        .filter(Boolean)
+      const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean)
 
       const { error: insertError } = await supabase.from('articles').insert({
         title,
@@ -91,8 +95,10 @@ export default function NovoArtigoPage() {
         content,
         excerpt: excerpt || null,
         cover_image_url: coverUrl,
+        cover_position: coverPosition,
         author_id: user.id,
         category,
+        subcategory: subcategory || null,
         tags: tagsArray,
         status: isAdmin ? 'published' : 'pending',
         featured: false,
@@ -101,7 +107,6 @@ export default function NovoArtigoPage() {
       })
 
       if (insertError) throw insertError
-
       router.push(isAdmin ? '/admin' : '/painel')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao submeter artigo.')
@@ -112,23 +117,21 @@ export default function NovoArtigoPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <p className="text-xs font-semibold tracking-widest uppercase text-ink-muted mb-1">Painel do Autor</p>
+        <p className="text-xs font-semibold tracking-widest uppercase text-ink-muted mb-1">
+          {isAdmin ? 'Painel Admin' : 'Painel do Autor'}
+        </p>
         <h1 className="font-serif text-3xl font-bold text-ink">Novo artigo</h1>
-        <p className="text-sm text-ink-muted mt-1">Após submeter, o artigo aguardará aprovação do administrador.</p>
+        {!isAdmin && <p className="text-sm text-ink-muted mt-1">Após submeter, o artigo aguardará aprovação do administrador.</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-            {error}
-          </div>
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>
         )}
 
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
-            Título *
-          </label>
+          <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">Título *</label>
           <input
             type="text"
             value={title}
@@ -142,33 +145,45 @@ export default function NovoArtigoPage() {
         {/* Excerpt */}
         <div>
           <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
-            Resumo / Lead <span className="font-normal normal-case text-ink-muted">(opcional — aparece no card e no início do artigo)</span>
+            Resumo / Lead <span className="font-normal normal-case text-ink-muted">(opcional)</span>
           </label>
           <textarea
             value={excerpt}
             onChange={e => setExcerpt(e.target.value)}
             rows={2}
             className="w-full border border-border bg-white px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-ink transition-colors resize-none"
-            placeholder="Uma breve descrição do argumento central do artigo..."
+            placeholder="Breve descrição do argumento central..."
           />
         </div>
 
-        {/* Category + Tags */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Category + Subcategory + Tags */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
-              Categoria *
-            </label>
+            <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">Categoria *</label>
             <select
               value={category}
-              onChange={e => setCategory(e.target.value as typeof CATEGORIES[number])}
+              onChange={e => { setCategory(e.target.value); setSubcategory('') }}
               className="w-full border border-border bg-white px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-ink transition-colors"
             >
-              {CATEGORIES.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
+              {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
           </div>
+
+          <div>
+            <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
+              Subcategoria <span className="font-normal normal-case text-ink-muted">(opcional)</span>
+            </label>
+            <select
+              value={subcategory}
+              onChange={e => setSubcategory(e.target.value)}
+              disabled={subcategories.length === 0}
+              className="w-full border border-border bg-white px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-ink transition-colors disabled:opacity-40"
+            >
+              <option value="">— nenhuma —</option>
+              {subcategories.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+            </select>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
               Tags <span className="font-normal normal-case text-ink-muted">(separadas por vírgula)</span>
@@ -189,17 +204,23 @@ export default function NovoArtigoPage() {
             Foto de capa <span className="font-normal normal-case text-ink-muted">(opcional)</span>
           </label>
           {coverPreview ? (
-            <div className="relative">
-              <div className="relative aspect-[16/9] w-full max-w-md overflow-hidden bg-paper-warm">
-                <Image src={coverPreview} alt="Capa" fill className="object-cover" sizes="400px" />
+            <div className="space-y-4">
+              <div className="relative">
+                <div className="relative aspect-[16/9] w-full max-w-md overflow-hidden bg-paper-warm">
+                  <Image src={coverPreview} alt="Capa" fill className="object-cover" style={{ objectPosition: coverPosition }} sizes="400px" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setCoverPreview(null); setCoverFile(null) }}
+                  className="absolute top-2 left-2 bg-ink text-paper p-1 hover:bg-accent transition-colors"
+                >
+                  <X size={14} />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => { setCoverPreview(null); setCoverFile(null) }}
-                className="absolute top-2 left-2 bg-ink text-paper p-1 hover:bg-accent transition-colors"
-              >
-                <X size={14} />
-              </button>
+              <div>
+                <p className="text-xs font-semibold tracking-wide uppercase text-ink-muted mb-2">Enquadramento da imagem</p>
+                <FocalPointPicker value={coverPosition} onChange={setCoverPosition} imageUrl={coverPreview} />
+              </div>
             </div>
           ) : (
             <label className="flex flex-col items-center justify-center w-full max-w-md aspect-[16/9] border-2 border-dashed border-border bg-white cursor-pointer hover:border-ink-muted transition-colors">
@@ -213,9 +234,7 @@ export default function NovoArtigoPage() {
 
         {/* Content */}
         <div>
-          <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
-            Corpo do artigo *
-          </label>
+          <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">Corpo do artigo *</label>
           <ArticleEditor content={content} onChange={setContent} />
         </div>
 
@@ -226,13 +245,9 @@ export default function NovoArtigoPage() {
             disabled={loading}
             className="bg-ink text-paper px-8 py-3 text-sm font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors disabled:opacity-50"
           >
-            {loading ? 'Publicando...' : isAdmin ? 'Publicar agora' : 'Submeter para aprovação'}
+            {loading ? 'Salvando...' : isAdmin ? 'Publicar agora' : 'Submeter para aprovação'}
           </button>
-          <button
-            type="button"
-            onClick={() => router.push(isAdmin ? '/admin' : '/painel')}
-            className="text-sm text-ink-muted hover:text-ink transition-colors"
-          >
+          <button type="button" onClick={() => router.push(isAdmin ? '/admin' : '/painel')} className="text-sm text-ink-muted hover:text-ink transition-colors">
             Cancelar
           </button>
         </div>

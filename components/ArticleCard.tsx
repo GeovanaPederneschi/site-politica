@@ -16,6 +16,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
     : ''
 
   const authorName = article.profiles?.full_name ?? 'Autor'
+  const imgPosition = article.cover_position ?? 'center center'
 
   if (variant === 'featured') {
     return (
@@ -28,6 +29,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
                 alt={article.title}
                 fill
                 className="object-cover"
+                style={{ objectPosition: imgPosition }}
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
             ) : (
@@ -97,6 +99,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
               alt={article.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
+              style={{ objectPosition: imgPosition }}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (

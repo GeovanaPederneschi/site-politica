@@ -4,7 +4,7 @@ import { ArticleWithAuthor, Profile } from '@/types'
 import AdminActions from './AdminActions'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Eye, Users, Plus } from 'lucide-react'
+import { Eye, Users, Plus, Tag } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function AdminPage() {
@@ -44,13 +44,22 @@ export default async function AdminPage() {
           <p className="text-xs font-semibold tracking-widest uppercase text-accent mb-1">Área Restrita</p>
           <h1 className="font-serif text-3xl font-bold text-ink">Painel Administrativo</h1>
         </div>
-        <Link
-          href="/painel/novo-artigo"
-          className="flex items-center gap-2 bg-ink text-paper px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors"
-        >
-          <Plus size={14} />
-          Novo artigo
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/categories"
+            className="flex items-center gap-2 border border-border text-ink px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-paper-warm transition-colors"
+          >
+            <Tag size={14} />
+            Categorias
+          </Link>
+          <Link
+            href="/painel/novo-artigo"
+            className="flex items-center gap-2 bg-ink text-paper px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors"
+          >
+            <Plus size={14} />
+            Novo artigo
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

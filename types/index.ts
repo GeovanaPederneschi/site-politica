@@ -17,8 +17,10 @@ export interface Article {
   content: string
   excerpt: string | null
   cover_image_url: string | null
+  cover_position: string
   author_id: string
   category: string
+  subcategory: string | null
   tags: string[]
   status: ArticleStatus
   featured: boolean
@@ -32,17 +34,12 @@ export interface ArticleWithAuthor extends Article {
   profiles: Profile
 }
 
-export const CATEGORIES = [
-  'Política',
-  'Filosofia',
-  'Direito',
-  'Internacional',
-  'Economia',
-  'Sociedade',
-  'História',
-  'Religião',
-  'Música',
-  'Futebol',
-] as const
-
-export type Category = (typeof CATEGORIES)[number]
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  parent_id: string | null
+  display_order: number
+  created_at: string
+  subcategories?: Category[]
+}

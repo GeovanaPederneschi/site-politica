@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { Profile } from '@/types'
-import { Menu, X, User, LogOut } from 'lucide-react'
-import { CATEGORIES } from '@/types'
+import { Profile, Category } from '@/types'
+import { Menu, X, User, LogOut, ChevronDown } from 'lucide-react'
 
 export default function Navbar() {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -20,7 +21,24 @@ export default function Navbar() {
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
       setProfile(data)
     }
+
+    async function loadCategories() {
+      const { data: all } = await supabase
+        .from('categories')
+        .select('*')
+        .order('display_order')
+
+      if (!all) return
+      const topLevel = all.filter(c => !c.parent_id)
+      const withSubs = topLevel.map(c => ({
+        ...c,
+        subcategories: all.filter(s => s.parent_id === c.id),
+      }))
+      setCategories(withSubs)
+    }
+
     loadProfile()
+    loadCategories()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       loadProfile()
@@ -40,7 +58,7 @@ export default function Navbar() {
       {/* Top bar */}
       <div className="border-b border-border bg-ink text-paper-warm">
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-xs tracking-wide">
-          <span className="font-sans opacity-70">Política · Filosofia · Direito</span>
+          <span className="font-sans opacity-70">Política · Filosofia · Economia</span>
           <div className="flex items-center gap-4">
             {profile ? (
               <div className="flex items-center gap-3">
@@ -76,26 +94,54 @@ export default function Navbar() {
       </div>
 
       {/* Category nav */}
-      <nav className="border-t border-border">
+      <nav className="border-t border-border" onMouseLeave={() => setOpenDropdown(null)}>
         <div className="max-w-7xl mx-auto px-4">
           {/* Desktop */}
-          <ul className="hidden md:flex items-center gap-0 overflow-x-auto">
+          <ul className="hidden md:flex items-center overflow-x-auto">
             <li>
-              <Link
-                href="/"
-                className="block px-4 py-3 text-xs font-semibold tracking-widest uppercase text-ink hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent"
-              >
+              <Link href="/" className="block px-4 py-3 text-xs font-semibold tracking-widest uppercase text-ink hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent">
                 Todos
               </Link>
             </li>
-            {CATEGORIES.map(cat => (
-              <li key={cat}>
-                <Link
-                  href={`/?categoria=${encodeURIComponent(cat)}`}
-                  className="block px-4 py-3 text-xs font-semibold tracking-widest uppercase text-ink hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent"
-                >
-                  {cat}
-                </Link>
+            {categories.map(cat => (
+              <li key={cat.id} className="relative">
+                {cat.subcategories && cat.subcategories.length > 0 ? (
+                  <>
+                    <button
+                      onMouseEnter={() => setOpenDropdown(cat.id)}
+                      className="flex items-center gap-1 px-4 py-3 text-xs font-semibold tracking-widest uppercase text-ink hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent"
+                    >
+                      {cat.name}
+                      <ChevronDown size={11} />
+                    </button>
+                    {openDropdown === cat.id && (
+                      <div className="absolute top-full left-0 bg-white border border-border shadow-md z-50 min-w-[180px]">
+                        <Link
+                          href={`/?categoria=${encodeURIComponent(cat.name)}`}
+                          className="block px-4 py-2 text-xs font-semibold text-ink hover:bg-paper-warm hover:text-accent transition-colors border-b border-border"
+                        >
+                          Todos em {cat.name}
+                        </Link>
+                        {cat.subcategories.map(sub => (
+                          <Link
+                            key={sub.id}
+                            href={`/?categoria=${encodeURIComponent(cat.name)}&subcategoria=${encodeURIComponent(sub.name)}`}
+                            className="block px-4 py-2 text-xs text-ink-muted hover:bg-paper-warm hover:text-accent transition-colors"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={`/?categoria=${encodeURIComponent(cat.name)}`}
+                    className="block px-4 py-3 text-xs font-semibold tracking-widest uppercase text-ink hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent"
+                  >
+                    {cat.name}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -112,11 +158,16 @@ export default function Navbar() {
               <li>
                 <Link href="/" onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-xs font-semibold tracking-wider uppercase text-ink">Todos</Link>
               </li>
-              {CATEGORIES.map(cat => (
-                <li key={cat}>
-                  <Link href={`/?categoria=${encodeURIComponent(cat)}`} onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-xs font-semibold tracking-wider uppercase text-ink">
-                    {cat}
+              {categories.map(cat => (
+                <li key={cat.id}>
+                  <Link href={`/?categoria=${encodeURIComponent(cat.name)}`} onClick={() => setMobileOpen(false)} className="block px-2 py-2 text-xs font-semibold tracking-wider uppercase text-ink">
+                    {cat.name}
                   </Link>
+                  {cat.subcategories?.map(sub => (
+                    <Link key={sub.id} href={`/?categoria=${encodeURIComponent(cat.name)}&subcategoria=${encodeURIComponent(sub.name)}`} onClick={() => setMobileOpen(false)} className="block px-4 py-1.5 text-xs text-ink-muted">
+                      — {sub.name}
+                    </Link>
+                  ))}
                 </li>
               ))}
             </ul>
