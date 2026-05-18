@@ -67,11 +67,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 py-6 text-center">
         <Link href="/" className="inline-block">
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-ink tracking-tight">
-            Revista Política <span className="text-accent">&</span> Filosofia
+            Atlantis Sul
           </h1>
         </Link>
         <p className="font-sans text-xs text-ink-muted tracking-widest mt-1 uppercase">
-          Pensamento crítico para o debate público
+          Política · Filosofia · Direito
         </p>
       </div>
 

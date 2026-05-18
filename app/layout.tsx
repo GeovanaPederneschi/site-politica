@@ -20,7 +20,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Revista Política & Filosofia',
+  title: 'Atlantis Sul',
   description: 'Artigos de política, filosofia, direito e pensamento contemporâneo.',
 }
 

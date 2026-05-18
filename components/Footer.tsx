@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-ink-light">
           <div>
-            <h3 className="font-serif text-xl font-bold mb-3">Revista Política <span className="text-accent-muted">&</span> Filosofia</h3>
+            <h3 className="font-serif text-xl font-bold mb-3">Atlantis Sul</h3>
             <p className="text-xs text-gray-400 leading-relaxed font-sans">
               Um espaço dedicado ao pensamento crítico, ao debate público qualificado e à produção intelectual independente.
             </p>
@@ -34,7 +34,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-gray-500">© {new Date().getFullYear()} Revista Política & Filosofia. Todos os direitos reservados.</p>
+          <p className="text-xs text-gray-500">© {new Date().getFullYear()} Atlantis Sul. Todos os direitos reservados.</p>
           <p className="text-xs text-gray-600">Feito com Next.js & Supabase</p>
         </div>
       </div>

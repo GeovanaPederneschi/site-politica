@@ -25,7 +25,14 @@ export default function CadastroPage() {
       return
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    // Passa full_name como metadata para o trigger criar o perfil automaticamente
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+      },
+    })
 
     if (signUpError) {
       setError(signUpError.message)
@@ -33,19 +40,12 @@ export default function CadastroPage() {
       return
     }
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        full_name: fullName,
-        bio: bio || null,
-        role: 'author',
-      })
-
-      if (profileError) {
-        setError('Erro ao criar perfil. Tente novamente.')
-        setLoading(false)
-        return
-      }
+    // Se confirmação de email está desativada, a sessão já existe — atualiza bio e nome
+    if (data.session && data.user) {
+      await supabase
+        .from('profiles')
+        .update({ full_name: fullName, bio: bio || null })
+        .eq('id', data.user.id)
     }
 
     setSuccess(true)
@@ -63,7 +63,7 @@ export default function CadastroPage() {
           </div>
           <h2 className="font-serif text-2xl font-bold text-ink mb-2">Conta criada!</h2>
           <p className="text-sm text-ink-muted mb-6">
-            Confirme seu email para ativar a conta. Após o login, você poderá submeter artigos para aprovação.
+            Sua conta foi criada. Faça login para acessar o painel.
           </p>
           <Link href="/login" className="inline-block bg-ink text-paper px-6 py-3 text-sm font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors">
             Ir para login
@@ -78,7 +78,7 @@ export default function CadastroPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="font-serif text-2xl font-bold text-ink">
-            Revista Política <span className="text-accent">&</span> Filosofia
+            Atlantis Sul
           </Link>
           <p className="text-sm text-ink-muted mt-2 font-sans">Crie sua conta de autor</p>
         </div>

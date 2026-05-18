@@ -41,7 +41,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="font-serif text-2xl font-bold text-ink">
-            Revista Política <span className="text-accent">&</span> Filosofia
+            Atlantis Sul
           </Link>
           <p className="text-sm text-ink-muted mt-2 font-sans">Entre na sua conta</p>
         </div>
