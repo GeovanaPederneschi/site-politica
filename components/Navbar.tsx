@@ -71,7 +71,7 @@ export default function Navbar() {
           </h1>
         </Link>
         <p className="font-sans text-xs text-ink-muted tracking-widest mt-1 uppercase">
-          Política · Filosofia · Direito
+          Política · Filosofia · Economia
         </p>
       </div>
 

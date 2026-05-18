@@ -39,6 +39,10 @@ export const CATEGORIES = [
   'Internacional',
   'Economia',
   'Sociedade',
+  'História',
+  'Religião',
+  'Música',
+  'Futebol',
 ] as const
 
 export type Category = (typeof CATEGORIES)[number]
