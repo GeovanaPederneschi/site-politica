@@ -22,6 +22,17 @@ export default function NovoArtigoPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // Detecta se é admin para adaptar o texto do botão
+  useState(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('profiles').select('role').eq('id', user.id).single()
+        .then(({ data }) => setIsAdmin(data?.role === 'admin'))
+    })
+  })
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -42,6 +53,14 @@ export default function NovoArtigoPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      const isAdmin = profileData?.role === 'admin'
 
       let coverUrl: string | null = null
 
@@ -75,14 +94,15 @@ export default function NovoArtigoPage() {
         author_id: user.id,
         category,
         tags: tagsArray,
-        status: 'pending',
+        status: isAdmin ? 'published' : 'pending',
         featured: false,
         views: 0,
+        published_at: isAdmin ? new Date().toISOString() : null,
       })
 
       if (insertError) throw insertError
 
-      router.push('/painel')
+      router.push(isAdmin ? '/admin' : '/painel')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao submeter artigo.')
       setLoading(false)
@@ -206,11 +226,11 @@ export default function NovoArtigoPage() {
             disabled={loading}
             className="bg-ink text-paper px-8 py-3 text-sm font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors disabled:opacity-50"
           >
-            {loading ? 'Submetendo...' : 'Submeter para aprovação'}
+            {loading ? 'Publicando...' : isAdmin ? 'Publicar agora' : 'Submeter para aprovação'}
           </button>
           <button
             type="button"
-            onClick={() => router.push('/painel')}
+            onClick={() => router.push(isAdmin ? '/admin' : '/painel')}
             className="text-sm text-ink-muted hover:text-ink transition-colors"
           >
             Cancelar

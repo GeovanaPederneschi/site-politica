@@ -4,7 +4,8 @@ import { ArticleWithAuthor, Profile } from '@/types'
 import AdminActions from './AdminActions'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Eye, Users } from 'lucide-react'
+import { Eye, Users, Plus } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function AdminPage() {
   const supabase = createServerSupabaseClient()
@@ -38,9 +39,18 @@ export default async function AdminPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       {/* Header */}
-      <div className="mb-10 pb-6 border-b border-border">
-        <p className="text-xs font-semibold tracking-widest uppercase text-accent mb-1">Área Restrita</p>
-        <h1 className="font-serif text-3xl font-bold text-ink">Painel Administrativo</h1>
+      <div className="flex items-start justify-between mb-10 pb-6 border-b border-border">
+        <div>
+          <p className="text-xs font-semibold tracking-widest uppercase text-accent mb-1">Área Restrita</p>
+          <h1 className="font-serif text-3xl font-bold text-ink">Painel Administrativo</h1>
+        </div>
+        <Link
+          href="/painel/novo-artigo"
+          className="flex items-center gap-2 bg-ink text-paper px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors"
+        >
+          <Plus size={14} />
+          Novo artigo
+        </Link>
       </div>
 
       {/* Stats */}
