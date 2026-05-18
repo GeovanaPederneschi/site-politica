@@ -15,6 +15,8 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
     ? format(new Date(article.published_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
     : ''
 
+  const authorName = article.profiles?.full_name ?? 'Autor'
+
   if (variant === 'featured') {
     return (
       <Link href={`/${article.slug}`} className="group block">
@@ -30,7 +32,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-paper-warm">
-                <span className="font-serif text-4xl text-ink-muted opacity-30">RPF</span>
+                <span className="font-serif text-4xl text-ink-muted opacity-30">AS</span>
               </div>
             )}
           </div>
@@ -44,7 +46,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
             )}
             <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
               <div>
-                <p className="text-xs font-semibold text-ink">{article.profiles.full_name}</p>
+                <p className="text-xs font-semibold text-ink">{authorName}</p>
                 <p className="text-xs text-ink-muted">{date}</p>
               </div>
               <div className="flex items-center gap-1 text-xs text-ink-muted">
@@ -78,7 +80,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
             <h3 className="font-serif text-base font-bold text-ink leading-snug group-hover:text-accent transition-colors line-clamp-2">
               {article.title}
             </h3>
-            <p className="text-xs text-ink-muted mt-1">{article.profiles.full_name} · {date}</p>
+            <p className="text-xs text-ink-muted mt-1">{authorName} · {date}</p>
           </div>
         </article>
       </Link>
@@ -99,7 +101,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-serif text-3xl text-ink-muted opacity-20">RPF</span>
+              <span className="font-serif text-3xl text-ink-muted opacity-20">AS</span>
             </div>
           )}
         </div>
@@ -113,7 +115,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
           )}
           <div className="flex items-center justify-between pt-3 border-t border-border">
             <div>
-              <p className="text-xs font-semibold text-ink">{article.profiles.full_name}</p>
+              <p className="text-xs font-semibold text-ink">{authorName}</p>
               <p className="text-xs text-ink-muted">{date}</p>
             </div>
             <div className="flex items-center gap-1 text-xs text-ink-muted">

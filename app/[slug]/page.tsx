@@ -74,7 +74,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {/* Meta */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-8 pb-6 border-b border-border">
         <div>
-          <span className="text-sm font-semibold text-ink">{a.profiles.full_name}</span>
+          <span className="text-sm font-semibold text-ink">{a.profiles?.full_name ?? 'Autor'}</span>
         </div>
         <span className="text-ink-muted text-sm">{date}</span>
         <div className="flex items-center gap-1 text-xs text-ink-muted">
@@ -126,6 +126,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       )}
 
       {/* Author bio */}
+      {a.profiles && (
       <div className="mt-10 pt-8 border-t-2 border-ink">
         <h3 className="text-xs font-semibold tracking-widest uppercase text-ink-muted mb-4">Sobre o autor</h3>
         <div className="flex gap-4 items-start">
@@ -142,6 +143,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
         </div>
       </div>
+      )}
 
       {/* View counter (increments on mount) */}
       <ViewCounter slug={params.slug} />
