@@ -79,6 +79,28 @@
     text-underline-offset: 3px;
   }
 
+  .article-body figure,
+  .article-body .article-figure {
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .article-body figure img,
+  .article-body .article-figure img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .article-body figcaption {
+    font-size: 0.82rem;
+    color: #6b6b6b;
+    font-style: italic;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+  }
+
   .divider-rule {
     border: none;
     border-top: 1px solid #e2e0da;
@@ -124,4 +146,36 @@
   padding-left: 1rem;
   margin-left: 0;
   font-style: italic;
+}
+
+/* Figure node in editor */
+.ProseMirror .article-figure-node {
+  margin: 1.5rem 0;
+  text-align: center;
+  cursor: default;
+  outline: 2px solid transparent;
+  border-radius: 2px;
+  transition: outline-color 0.15s;
+}
+
+.ProseMirror .article-figure-node.ProseMirror-selectednode {
+  outline-color: #8b1a1a;
+}
+
+.figure-caption-input {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: #6b6b6b;
+  margin-top: 0.4rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+}
+
+.figure-caption-input::placeholder {
+  color: #b0b0b0;
 }

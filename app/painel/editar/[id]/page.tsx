@@ -1,17 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Category } from '@/types'
 import ArticleEditor from '@/components/ArticleEditor'
 import FocalPointPicker from '@/components/FocalPointPicker'
 import { Upload, X } from 'lucide-react'
-import slugify from 'slugify'
 import Image from 'next/image'
 
-export default function NovoArtigoPage() {
+export default function EditarArtigoPage() {
   const router = useRouter()
+  const params = useParams()
+  const articleId = params.id as string
   const supabase = createClient()
 
   const [title, setTitle] = useState('')
@@ -22,8 +23,11 @@ export default function NovoArtigoPage() {
   const [tags, setTags] = useState('')
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverRemoved, setCoverRemoved] = useState(false)
+  const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null)
   const [coverPosition, setCoverPosition] = useState('center center')
   const [loading, setLoading] = useState(false)
+  const [loadingArticle, setLoadingArticle] = useState(true)
   const [error, setError] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
@@ -31,22 +35,41 @@ export default function NovoArtigoPage() {
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { router.push('/login'); return }
 
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-      setIsAdmin(profile?.role === 'admin')
+      const [profileResult, articleResult, categoriesResult] = await Promise.all([
+        supabase.from('profiles').select('role').eq('id', user.id).single(),
+        supabase.from('articles').select('*').eq('id', articleId).single(),
+        supabase.from('categories').select('*').order('display_order'),
+      ])
 
-      const { data: all } = await supabase.from('categories').select('*').order('display_order')
-      if (!all) return
+      const admin = profileResult.data?.role === 'admin'
+      setIsAdmin(admin)
+
+      const article = articleResult.data
+      if (!article) { router.push(admin ? '/admin' : '/painel'); return }
+      if (!admin && article.author_id !== user.id) { router.push('/painel'); return }
+
+      const all = categoriesResult.data ?? []
       const topLevel = all.filter((c: Category) => !c.parent_id).map((c: Category) => ({
         ...c,
         subcategories: all.filter((s: Category) => s.parent_id === c.id),
       }))
       setCategories(topLevel)
-      if (topLevel.length > 0) setCategory(topLevel[0].name)
+
+      setTitle(article.title)
+      setExcerpt(article.excerpt ?? '')
+      setContent(article.content)
+      setCategory(article.category)
+      setSubcategory(article.subcategory ?? '')
+      setTags((article.tags ?? []).join(', '))
+      setExistingCoverUrl(article.cover_image_url)
+      setCoverPreview(article.cover_image_url)
+      setCoverPosition(article.cover_position ?? 'center center')
+      setLoadingArticle(false)
     }
     load()
-  }, [])
+  }, [articleId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedCategory = categories.find(c => c.name === category)
   const subcategories = selectedCategory?.subcategories ?? []
@@ -56,6 +79,13 @@ export default function NovoArtigoPage() {
     if (!file) return
     setCoverFile(file)
     setCoverPreview(URL.createObjectURL(file))
+    setCoverRemoved(false)
+  }
+
+  function removeCover() {
+    setCoverPreview(null)
+    setCoverFile(null)
+    setCoverRemoved(true)
   }
 
   async function handleInlineImageUpload(file: File): Promise<string> {
@@ -84,7 +114,7 @@ export default function NovoArtigoPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      let coverUrl: string | null = null
+      let coverUrl: string | null = existingCoverUrl
 
       if (coverFile) {
         const ext = coverFile.name.split('.').pop()
@@ -95,36 +125,37 @@ export default function NovoArtigoPage() {
         if (uploadError) throw uploadError
         const { data: publicData } = supabase.storage.from('covers').getPublicUrl(fileName)
         coverUrl = publicData.publicUrl
+      } else if (coverRemoved) {
+        coverUrl = null
       }
-
-      const baseSlug = slugify(title, { lower: true, strict: true, locale: 'pt' })
-      const slug = `${baseSlug}-${Date.now()}`
 
       const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean)
 
-      const { error: insertError } = await supabase.from('articles').insert({
+      const { error: updateError } = await supabase.from('articles').update({
         title,
-        slug,
         content,
         excerpt: excerpt || null,
         cover_image_url: coverUrl,
         cover_position: coverPosition,
-        author_id: user.id,
         category,
         subcategory: subcategory || null,
         tags: tagsArray,
-        status: isAdmin ? 'published' : 'pending',
-        featured: false,
-        views: 0,
-        published_at: isAdmin ? new Date().toISOString() : null,
-      })
+      }).eq('id', articleId)
 
-      if (insertError) throw insertError
+      if (updateError) throw updateError
       router.push(isAdmin ? '/admin' : '/painel')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao submeter artigo.')
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar artigo.')
       setLoading(false)
     }
+  }
+
+  if (loadingArticle) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
+        <p className="text-ink-muted text-sm">Carregando artigo...</p>
+      </div>
+    )
   }
 
   return (
@@ -133,8 +164,7 @@ export default function NovoArtigoPage() {
         <p className="text-xs font-semibold tracking-widest uppercase text-ink-muted mb-1">
           {isAdmin ? 'Painel Admin' : 'Painel do Autor'}
         </p>
-        <h1 className="font-serif text-3xl font-bold text-ink">Novo artigo</h1>
-        {!isAdmin && <p className="text-sm text-ink-muted mt-1">Após submeter, o artigo aguardará aprovação do administrador.</p>}
+        <h1 className="font-serif text-3xl font-bold text-ink">Editar artigo</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -224,7 +254,7 @@ export default function NovoArtigoPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setCoverPreview(null); setCoverFile(null) }}
+                  onClick={removeCover}
                   className="absolute top-2 left-2 bg-ink text-paper p-1 hover:bg-accent transition-colors"
                 >
                   <X size={14} />
@@ -258,9 +288,13 @@ export default function NovoArtigoPage() {
             disabled={loading}
             className="bg-ink text-paper px-8 py-3 text-sm font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors disabled:opacity-50"
           >
-            {loading ? 'Salvando...' : isAdmin ? 'Publicar agora' : 'Submeter para aprovação'}
+            {loading ? 'Salvando...' : 'Salvar alterações'}
           </button>
-          <button type="button" onClick={() => router.push(isAdmin ? '/admin' : '/painel')} className="text-sm text-ink-muted hover:text-ink transition-colors">
+          <button
+            type="button"
+            onClick={() => router.push(isAdmin ? '/admin' : '/painel')}
+            className="text-sm text-ink-muted hover:text-ink transition-colors"
+          >
             Cancelar
           </button>
         </div>

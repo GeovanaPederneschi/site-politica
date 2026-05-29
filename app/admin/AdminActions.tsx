@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { CheckCircle, XCircle, Star, StarOff, EyeOff, ExternalLink } from 'lucide-react'
+import { CheckCircle, XCircle, Star, StarOff, EyeOff, ExternalLink, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { ArticleStatus } from '@/types'
 
@@ -47,6 +47,14 @@ export default function AdminActions({ articleId, slug, currentStatus, featured 
 
   return (
     <div className={`flex flex-col gap-1.5 flex-shrink-0 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+      <Link
+        href={`/painel/editar/${articleId}`}
+        className="flex items-center gap-1.5 text-xs font-semibold text-ink-muted border border-border px-3 py-1.5 hover:bg-paper-warm transition-colors"
+      >
+        <Pencil size={13} />
+        Editar
+      </Link>
+
       {currentStatus === 'pending' && (
         <>
           <button

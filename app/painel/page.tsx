@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Plus, Eye, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, Eye, Clock, CheckCircle, XCircle, Pencil } from 'lucide-react'
 import { Article } from '@/types'
 
 const statusMap = {
@@ -98,11 +98,20 @@ export default async function PainelPage() {
                       <Icon size={12} />
                       {label}
                     </span>
-                    {article.status === 'published' && (
-                      <Link href={`/${article.slug}`} className="text-xs text-accent hover:underline">
-                        Ver publicado →
+                    <div className="flex items-center gap-3">
+                      {article.status === 'published' && (
+                        <Link href={`/${article.slug}`} className="text-xs text-accent hover:underline">
+                          Ver publicado →
+                        </Link>
+                      )}
+                      <Link
+                        href={`/painel/editar/${article.id}`}
+                        className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors"
+                      >
+                        <Pencil size={11} />
+                        Editar
                       </Link>
-                    )}
+                    </div>
                   </div>
                 </div>
               )
