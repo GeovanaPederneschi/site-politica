@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Plus, Eye, Clock, CheckCircle, XCircle, Pencil } from 'lucide-react'
+import { Plus, Eye, Clock, CheckCircle, XCircle, Pencil, UserCircle } from 'lucide-react'
 import { Article } from '@/types'
 
 const statusMap = {
@@ -37,13 +37,22 @@ export default async function PainelPage() {
           </h1>
           <p className="text-sm text-ink-muted mt-1">Gerencie seus artigos e submeta novos textos.</p>
         </div>
-        <Link
-          href="/painel/novo-artigo"
-          className="flex items-center gap-2 bg-ink text-paper px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors"
-        >
-          <Plus size={14} />
-          Novo artigo
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/painel/perfil"
+            className="flex items-center gap-2 border border-border text-ink px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-paper-warm transition-colors"
+          >
+            <UserCircle size={14} />
+            Meu perfil
+          </Link>
+          <Link
+            href="/painel/novo-artigo"
+            className="flex items-center gap-2 bg-ink text-paper px-5 py-2.5 text-xs font-semibold tracking-wide uppercase hover:bg-ink-light transition-colors"
+          >
+            <Plus size={14} />
+            Novo artigo
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
