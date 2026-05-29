@@ -97,7 +97,7 @@ export default function Navbar() {
       <nav className="border-t border-border" onMouseLeave={() => setOpenDropdown(null)}>
         <div className="max-w-7xl mx-auto px-4">
           {/* Desktop */}
-          <ul className="hidden md:flex items-center overflow-x-auto">
+          <ul className="hidden md:flex items-center">
             <li>
               <Link href="/" className="block px-4 py-3 text-xs font-semibold tracking-widest uppercase text-ink hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent">
                 Todos
