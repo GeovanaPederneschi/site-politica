@@ -2,8 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { formatDateBR } from '@/lib/date'
 import { Eye, Clock, ArrowLeft } from 'lucide-react'
 import { ArticleWithAuthor } from '@/types'
 import ViewCounter from './ViewCounter'
@@ -39,9 +38,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const a = article as ArticleWithAuthor
 
-  const date = a.published_at
-    ? format(new Date(a.published_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })
-    : ''
+  const date = a.published_at ? formatDateBR(a.published_at, 'long') : ''
 
   const wordCount = a.content.replace(/<[^>]*>/g, '').split(/\s+/).length
   const readTime = Math.max(1, Math.ceil(wordCount / 200))

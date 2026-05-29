@@ -1,8 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { formatDateBR } from '@/lib/date'
 import { Plus, Eye, Clock, CheckCircle, XCircle, Pencil, UserCircle } from 'lucide-react'
 import { Article } from '@/types'
 
@@ -94,7 +93,7 @@ export default async function PainelPage() {
                       {article.title}
                     </h3>
                     <p className="text-xs text-ink-muted mt-1">
-                      Submetido em {format(new Date(article.created_at), "d/MM/yyyy", { locale: ptBR })}
+                      Submetido em {formatDateBR(article.created_at, 'short')}
                       {article.status === 'published' && article.views > 0 && (
                         <span className="ml-3 flex items-center gap-1 inline-flex">
                           <Eye size={11} /> {article.views.toLocaleString('pt-BR')} views

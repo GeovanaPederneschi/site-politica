@@ -2,8 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { ArticleWithAuthor, Profile } from '@/types'
 import AdminActions from './AdminActions'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { formatDateBR } from '@/lib/date'
 import { Eye, Users, Plus, Tag } from 'lucide-react'
 import Link from 'next/link'
 
@@ -112,7 +111,7 @@ export default async function AdminPage() {
                     )}
                     <div className="flex items-center gap-3 mt-2 text-xs text-ink-muted">
                       <span>Por <strong className="text-ink">{article.profiles.full_name}</strong></span>
-                      <span>Submetido em {format(new Date(article.created_at), "d/MM/yyyy", { locale: ptBR })}</span>
+                      <span>Submetido em {formatDateBR(article.created_at, 'short')}</span>
                     </div>
                   </div>
                   <AdminActions articleId={article.id} slug={article.slug} currentStatus="pending" featured={article.featured} />
@@ -166,7 +165,7 @@ export default async function AdminPage() {
               <div>
                 <p className="font-semibold text-sm text-ink">{u.full_name}</p>
                 <p className="text-xs text-ink-muted">
-                  Cadastrado em {format(new Date(u.created_at), "d/MM/yyyy", { locale: ptBR })}
+                  Cadastrado em {formatDateBR(u.created_at, 'short')}
                 </p>
               </div>
               <span className={`text-xs font-semibold px-2 py-0.5 border ${
