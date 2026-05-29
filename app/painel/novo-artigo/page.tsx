@@ -62,7 +62,7 @@ export default function NovoArtigoPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Não autenticado')
     const ext = file.name.split('.').pop()
-    const fileName = `inline/${user.id}/${Date.now()}.${ext}`
+    const fileName = `${user.id}/inline/${Date.now()}.${ext}`
     const { error: uploadError } = await supabase.storage
       .from('covers')
       .upload(fileName, file, { upsert: true })
