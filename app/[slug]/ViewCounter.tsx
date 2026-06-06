@@ -6,7 +6,9 @@ import { createClient } from '@/lib/supabase'
 export default function ViewCounter({ slug }: { slug: string }) {
   useEffect(() => {
     const supabase = createClient()
-    supabase.rpc('increment_views', { article_slug: slug })
+    supabase.rpc('increment_views', { article_slug: slug }).then(({ error }) => {
+      if (error) console.error('[ViewCounter] erro ao incrementar views:', error)
+    })
   }, [slug])
 
   return null
