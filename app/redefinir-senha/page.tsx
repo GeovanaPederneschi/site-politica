@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -12,14 +12,6 @@ export default function RedefinirSenhaPage() {
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    // Supabase injeta a sessão automaticamente via hash na URL após o clique no link
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') setReady(true)
-    })
-  }, [supabase])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,28 +30,12 @@ export default function RedefinirSenhaPage() {
     const { error } = await supabase.auth.updateUser({ password })
 
     if (error) {
-      setError('Não foi possível redefinir a senha. Tente novamente.')
+      setError('Não foi possível redefinir a senha. O link pode ter expirado — solicite um novo.')
       setLoading(false)
       return
     }
 
     router.push('/login?senha_redefinida=1')
-  }
-
-  if (!ready) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-sm text-center">
-          <p className="text-sm text-ink-muted">Verificando link de recuperação...</p>
-          <p className="text-xs text-ink-muted mt-3">
-            Se essa página não carregar, o link pode ter expirado.{' '}
-            <Link href="/esqueci-senha" className="text-accent hover:underline">
-              Solicitar novo link
-            </Link>
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -75,7 +51,12 @@ export default function RedefinirSenhaPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-              {error}
+              {error}{' '}
+              {error.includes('expirado') && (
+                <Link href="/esqueci-senha" className="underline font-semibold">
+                  Solicitar novo link
+                </Link>
+              )}
             </div>
           )}
 
