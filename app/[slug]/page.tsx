@@ -15,13 +15,32 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   const supabase = createServerSupabaseClient()
   const { data } = await supabase
     .from('articles')
-    .select('title, excerpt')
+    .select('title, excerpt, cover_image_url')
     .eq('slug', params.slug)
     .eq('status', 'published')
     .single()
 
   if (!data) return { title: 'Artigo não encontrado' }
-  return { title: data.title, description: data.excerpt }
+
+  const images = data.cover_image_url
+    ? [{ url: data.cover_image_url, width: 1200, height: 630 }]
+    : []
+
+  return {
+    title: data.title,
+    description: data.excerpt,
+    openGraph: {
+      title: data.title,
+      description: data.excerpt ?? undefined,
+      images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: data.title,
+      description: data.excerpt ?? undefined,
+      images: data.cover_image_url ? [data.cover_image_url] : [],
+    },
+  }
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
