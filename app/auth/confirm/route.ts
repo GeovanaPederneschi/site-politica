@@ -7,16 +7,17 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = searchParams.get('next') ?? '/'
 
   const supabase = createServerSupabaseClient()
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(new URL(next, origin))
-  } else if (token_hash && type) {
+    if (!error) return NextResponse.redirect(new URL('/redefinir-senha', origin))
+  }
+
+  if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash })
-    if (!error) return NextResponse.redirect(new URL(next, origin))
+    if (!error) return NextResponse.redirect(new URL('/redefinir-senha', origin))
   }
 
   return NextResponse.redirect(new URL('/login?erro=link_invalido', origin))
