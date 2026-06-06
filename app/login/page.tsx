@@ -2,16 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const senhaRedefinida = searchParams.get('senha_redefinida') === '1'
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -47,8 +50,13 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
+          {senhaRedefinida && (
+            <div className="bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+              Senha redefinida com sucesso. Faça login com a nova senha.
+            </div>
+          )}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded">
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
               {error}
             </div>
           )}
@@ -68,9 +76,14 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-1.5">
-              Senha
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold tracking-wide uppercase text-ink-muted">
+                Senha
+              </label>
+              <Link href="/esqueci-senha" className="text-xs text-accent hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
             <input
               type="password"
               value={password}
