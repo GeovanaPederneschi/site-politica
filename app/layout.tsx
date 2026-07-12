@@ -19,15 +19,70 @@ const inter = Inter({
   display: 'swap',
 })
 
+const BASE_URL = 'https://atlantisul.vercel.app'
+const SITE_DESCRIPTION =
+  'Portal de ensaios e reflexões sobre política, economia, história, filosofia, direito e geopolítica.'
+
 export const metadata: Metadata = {
-  title: 'Atlantis Sul',
-  description: 'Artigos de política, filosofia, direito e pensamento contemporâneo.',
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'Atlantis Sul — Ensaios de Política, Filosofia e Direito',
+    template: '%s | Atlantis Sul',
+  },
+  description: SITE_DESCRIPTION,
+  keywords: ['política', 'filosofia', 'direito', 'economia', 'geopolítica', 'ensaios', 'Brasil'],
+  authors: [{ name: 'João Arthur Mendes Castro' }],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: '/',
+    siteName: 'Atlantis Sul',
+    title: 'Atlantis Sul — Ensaios de Política, Filosofia e Direito',
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Atlantis Sul',
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+    },
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Atlantis Sul',
+  url: BASE_URL,
+  description: SITE_DESCRIPTION,
+  publisher: {
+    '@type': 'Organization',
+    name: 'Atlantis Sul',
+    founder: {
+      '@type': 'Person',
+      name: 'João Arthur Mendes Castro',
+    },
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${playfair.variable} ${inter.variable}`}>
       <body className="bg-paper text-ink min-h-screen flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

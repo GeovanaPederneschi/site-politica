@@ -6,6 +6,7 @@ import { formatDateBR } from '@/lib/date'
 import { Eye, Clock, ArrowLeft } from 'lucide-react'
 import { ArticleWithAuthor } from '@/types'
 import ViewCounter from './ViewCounter'
+import ArticleCard from '@/components/ArticleCard'
 
 interface ArticlePageProps {
   params: { slug: string }
@@ -15,30 +16,32 @@ export async function generateMetadata({ params }: ArticlePageProps) {
   const supabase = createServerSupabaseClient()
   const { data } = await supabase
     .from('articles')
-    .select('title, excerpt, cover_image_url')
+    .select('title, excerpt, cover_image_url, published_at, profiles(full_name)')
     .eq('slug', params.slug)
     .eq('status', 'published')
     .single()
 
   if (!data) return { title: 'Artigo não encontrado' }
 
-  const images = data.cover_image_url
-    ? [{ url: data.cover_image_url, width: 1200, height: 630 }]
-    : []
+  const authorName = Array.isArray(data.profiles) ? data.profiles[0]?.full_name : undefined
 
   return {
     title: data.title,
     description: data.excerpt,
+    alternates: {
+      canonical: `/${params.slug}`,
+    },
     openGraph: {
+      type: 'article',
       title: data.title,
       description: data.excerpt ?? undefined,
-      images,
+      publishedTime: data.published_at ?? undefined,
+      authors: authorName ? [authorName] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title: data.title,
       description: data.excerpt ?? undefined,
-      images: data.cover_image_url ? [data.cover_image_url] : [],
     },
   }
 }
@@ -57,13 +60,46 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   const a = article as ArticleWithAuthor
 
+  const { data: related } = await supabase
+    .from('articles')
+    .select('*, profiles(*)')
+    .eq('status', 'published')
+    .eq('category', a.category)
+    .neq('id', a.id)
+    .order('published_at', { ascending: false })
+    .limit(3)
+
+  const relatedArticles = (related as ArticleWithAuthor[]) ?? []
+
   const date = a.published_at ? formatDateBR(a.published_at, 'long') : ''
 
   const wordCount = a.content.replace(/<[^>]*>/g, '').split(/\s+/).length
   const readTime = Math.max(1, Math.ceil(wordCount / 200))
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: a.title,
+    description: a.excerpt ?? undefined,
+    image: a.cover_image_url ? [a.cover_image_url] : undefined,
+    datePublished: a.published_at ?? a.created_at,
+    dateModified: a.published_at ?? a.created_at,
+    author: {
+      '@type': 'Person',
+      name: a.profiles?.full_name,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Atlantis Sul',
+    },
+  }
+
   return (
     <article className="max-w-3xl mx-auto px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link href="/" className="flex items-center gap-1 text-xs text-ink-muted hover:text-accent transition-colors font-sans">
@@ -159,6 +195,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
         </div>
       </div>
+      )}
+
+      {/* Related articles */}
+      {relatedArticles.length > 0 && (
+        <div className="mt-10 pt-8 border-t-2 border-ink">
+          <h3 className="text-xs font-semibold tracking-widest uppercase text-ink-muted mb-4">
+            Leia também em {a.category}
+          </h3>
+          <div>
+            {relatedArticles.map(article => (
+              <ArticleCard key={article.id} article={article} variant="compact" />
+            ))}
+          </div>
+        </div>
       )}
 
       {/* View counter (increments on mount) */}
