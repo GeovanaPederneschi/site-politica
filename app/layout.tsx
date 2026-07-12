@@ -57,6 +57,9 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
     },
   },
+  verification: {
+    google: 'FrFTxgTjyxyP-KIxmjRTvLXCMep-RqjxNfbczpskKXk',
+  },
 }
 
 const jsonLd = {
