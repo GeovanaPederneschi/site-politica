@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Profile, Category } from '@/types'
 import { Menu, X, User, LogOut, ChevronDown } from 'lucide-react'
+import SearchBar from './SearchBar'
 
 export default function Navbar() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -58,8 +59,9 @@ export default function Navbar() {
       {/* Top bar */}
       <div className="border-b border-border bg-ink text-paper-warm">
         <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-xs tracking-wide">
-          <span className="font-sans opacity-70">Política · Filosofia · Economia</span>
+          <span className="font-sans opacity-70 hidden sm:inline">Política · Filosofia · Economia</span>
           <div className="flex items-center gap-4">
+            <SearchBar />
             {profile ? (
               <div className="flex items-center gap-3">
                 <Link href={profile.role === 'admin' ? '/admin' : '/painel'} className="hover:opacity-70 transition-opacity flex items-center gap-1">
